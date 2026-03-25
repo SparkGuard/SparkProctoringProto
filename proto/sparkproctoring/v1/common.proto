@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package sparkproctoring.v1;
+
+option go_package = "github.com/SparkGuard/SparkProctoringProto/gen/sparkproctoring/v1";
+
+import "google/protobuf/timestamp.proto";
+
+// --- Enumerations ---
+
+// Block data type stored in the local encrypted storage header.
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  DATA_TYPE_VIDEO      = 1; // H.264 MPEG-TS video chunk
+  DATA_TYPE_EVENT      = 2; // JSON event log (keyboard, mouse, apps)
+  DATA_TYPE_SCREENSHOT = 3; // PNG/JPEG screenshot
+  DATA_TYPE_META       = 4; // Session metadata
+  DATA_TYPE_NETWORK    = 5; // Network events (DNS, traffic stats)
+}
+
+// Event type inside EventPayload.
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED   = 0;
+  EVENT_TYPE_MOUSE         = 1;
+  EVENT_TYPE_KEYBOARD      = 2;
+  EVENT_TYPE_DNS_QUERY     = 3;
+  EVENT_TYPE_NET_STATS     = 4;
+  EVENT_TYPE_APP_SWITCH    = 5;
+  EVENT_TYPE_CLIPBOARD     = 6;
+  EVENT_TYPE_DEVICE_CHANGE = 7;
+}
+
+// Proctoring session lifecycle status.
+enum SessionStatus {
+  SESSION_STATUS_UNSPECIFIED = 0;
+  SESSION_STATUS_PENDING     = 1;
+  SESSION_STATUS_ACTIVE      = 2;
+  SESSION_STATUS_PAUSED      = 3;
+  SESSION_STATUS_FINISHED    = 4;
+  SESSION_STATUS_FAILED      = 5;
+}
+
+// Video stream source type.
+enum StreamType {
+  STREAM_TYPE_UNSPECIFIED = 0;
+  STREAM_TYPE_SCREEN      = 1;
+  STREAM_TYPE_WEBCAM      = 2;
+}
+
+// User role in the system.
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_STUDENT     = 1;
+  USER_ROLE_TEACHER     = 2;
+  USER_ROLE_ADMIN       = 3;
+}
+
+// --- Common messages ---
+
+// Universal event envelope.
+// All event types (keyboard, mouse, network, app, clipboard) are wrapped in this structure.
+message EventPayload {
+  EventType event_type    = 1;
+  int64     timestamp_ms  = 2; // Unix time in milliseconds
+  bytes     payload_json  = 3; // JSON-serialized type-specific event data
+}
+
+// Proctoring session information.
+message SessionInfo {
+  string                    id              = 1;
+  string                    user_id         = 2;
+  SessionStatus             status          = 3;
+  string                    agent_version   = 4;
+  string                    os              = 5;
+  string                    hostname        = 6;
+  google.protobuf.Timestamp started_at      = 7;
+  google.protobuf.Timestamp ended_at        = 8;
+  int32                     chunks_total    = 9;
+  int32                     events_total    = 10;
+  int64                     bytes_uploaded  = 11;
+}
+
+// Metadata for a single video chunk.
+message ChunkMeta {
+  string                    session_id      = 1;
+  StreamType                stream_type     = 2;
+  int32                     sequence_num    = 3;
+  int32                     duration_ms     = 4;
+  int64                     size_bytes      = 5;
+  string                    checksum_sha256 = 6; // SHA-256 hex
+  google.protobuf.Timestamp timestamp       = 7;
+}
+
+// --- Typed event payloads ---
+
+// Mouse input event.
+message MouseEvent {
+  string action  = 1; // "move", "click", "scroll"
+  int32  button  = 2;
+  int32  x       = 3;
+  int32  y       = 4;
+  bool   is_down = 5;
+}
+
+// Keyboard input event.
+message KeyboardEvent {
+  string action    = 1; // "press", "release"
+  string key_name  = 2;
+  string rune      = 3;
+  string modifiers = 4;
+}
+
+// DNS query captured by the agent.
+message DNSQueryEvent {
+  string          query = 1;
+  repeated string ips   = 2;
+}
+
+// Traffic statistics for a single remote IP.
+message TrafficStat {
+  string ip         = 1;
+  int64  sent_bytes = 2;
+  int64  recv_bytes = 3;
+}
+
+// Aggregated network traffic statistics.
+message NetworkStatsEvent {
+  repeated TrafficStat stats = 1;
+}
+
+// Active window switch event.
+message AppSwitchEvent {
+  string from_app      = 1;
+  string to_app        = 2;
+  string window_title  = 3;
+  int32  pid           = 4;
+}
+
+// Clipboard operation event.
+message ClipboardEvent {
+  string action     = 1; // "copy", "paste", "cut"
+  string mime_type  = 2;
+  int32  size_bytes = 3;
+  string preview    = 4; // First N characters (optional)
+}
+
+// Peripheral device connect/disconnect event.
+message DeviceChangeEvent {
+  string action      = 1; // "connected", "disconnected"
+  string device_type = 2; // "usb", "bluetooth", "display"
+  string device_name = 3;
+}

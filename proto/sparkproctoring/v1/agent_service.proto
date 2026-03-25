@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package sparkproctoring.v1;
+
+option go_package = "github.com/SparkGuard/SparkProctoringProto/gen/sparkproctoring/v1";
+
+import "sparkproctoring/v1/common.proto";
+
+// AgentService is the gRPC service for agent-to-server communication.
+// All calls from the desktop agent go through this service.
+service AgentService {
+
+  // Authenticate the agent.
+  // Agent sends a session key, server validates and returns a JWT token and session ID.
+  rpc AuthSession(AuthSessionRequest) returns (AuthSessionResponse);
+
+  // Send a batch of telemetry events.
+  // Agent accumulates events and sends them in batches.
+  rpc SendTelemetry(SendTelemetryRequest) returns (SendTelemetryResponse);
+
+  // Upload a video chunk.
+  // Client streaming: agent sends metadata first, then chunk bytes in portions.
+  rpc UploadChunk(stream UploadChunkRequest) returns (UploadChunkResponse);
+
+  // Stream events in real time.
+  // Alternative to batched SendTelemetry — for live monitoring.
+  rpc StreamEvents(stream StreamEventsRequest) returns (StreamEventsResponse);
+
+  // Heartbeat.
+  // Agent periodically reports that it is alive and sends brief statistics.
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+
+  // End the proctoring session.
+  // Agent notifies the server about a graceful session termination.
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+}
+
+// --- Requests ---
+
+// Agent authentication request.
+message AuthSessionRequest {
+  string session_key    = 1; // Exam session key/token
+  string agent_version  = 2; // Agent version (e.g., "1.0.0-darwin-arm64")
+  string os             = 3; // OS (e.g., "darwin", "linux", "windows")
+  string hostname       = 4; // Machine hostname
+}
+
+// Authentication response.
+message AuthSessionResponse {
+  string session_id = 1; // Server-assigned session UUID
+  string token      = 2; // JWT token for subsequent requests
+  int64  expires_at = 3; // Token expiration time (Unix timestamp)
+}
+
+// Telemetry batch from the agent.
+message SendTelemetryRequest {
+  string                session_id = 1;
+  repeated EventPayload events     = 2;
+}
+
+// Telemetry batch acknowledgment.
+message SendTelemetryResponse {
+  int32 accepted = 1; // Number of events accepted
+  int32 rejected = 2; // Number of events rejected (duplicates, invalid)
+}
+
+// Video chunk upload — client streaming.
+// First message contains metadata, subsequent messages carry data bytes.
+message UploadChunkRequest {
+  oneof data {
+    ChunkMeta meta       = 1; // Metadata (sent as the first message)
+    bytes     chunk_data = 2; // MPEG-TS byte portion (all subsequent messages)
+  }
+}
+
+// Video chunk upload acknowledgment.
+message UploadChunkResponse {
+  string session_id   = 1;
+  int32  sequence_num = 2;
+  string status       = 3; // "accepted" or "duplicate"
+}
+
+// Event streaming request — wraps a single event payload.
+message StreamEventsRequest {
+  string       session_id = 1;
+  EventPayload event      = 2;
+}
+
+// Event streaming acknowledgment.
+message StreamEventsResponse {
+  int32 total_received = 1;
+}
+
+// Heartbeat request from the agent.
+message HeartbeatRequest {
+  string session_id         = 1;
+  int64  uptime_seconds     = 2; // Agent uptime in seconds
+  int32  chunks_recorded    = 3; // Total video chunks recorded
+  int32  chunks_uploaded    = 4; // Total video chunks uploaded to server
+  int32  events_buffered    = 5; // Events in local buffer
+  int64  storage_used_bytes = 6; // Local storage usage in bytes
+  bool   is_online          = 7; // Whether the agent has server connectivity
+}
+
+// Heartbeat response.
+message HeartbeatResponse {
+  SessionStatus server_status = 1; // Current session status on the server
+  string        message       = 2; // Optional message (e.g., "terminate")
+}
+
+// Session termination request.
+message EndSessionRequest {
+  string session_id   = 1;
+  string reason       = 2; // "completed", "error", "user_stopped"
+  int32  total_chunks = 3;
+  int32  total_events = 4;
+  int64  total_bytes  = 5;
+}
+
+// Session termination acknowledgment.
+message EndSessionResponse {
+  bool   success    = 1;
+  string session_id = 2;
+}
