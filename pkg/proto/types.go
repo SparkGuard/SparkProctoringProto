@@ -30,11 +30,11 @@ const (
 
 // Session status strings — used in REST API JSON responses.
 const (
-	StatusPending  = "pending"
-	StatusActive   = "active"
-	StatusPaused   = "paused"
-	StatusFinished = "finished"
-	StatusFailed   = "failed"
+	StatusPending   = "pending"
+	StatusActive    = "active"
+	StatusPaused    = "paused"
+	StatusCompleted = "completed"
+	StatusFailed    = "failed"
 )
 
 // Stream type strings — used in REST API and S3 path construction.
