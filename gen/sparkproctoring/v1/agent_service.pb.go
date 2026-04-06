@@ -93,9 +93,10 @@ func (x *AuthSessionRequest) GetHostname() string {
 // Authentication response.
 type AuthSessionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`  // Server-assigned session UUID
-	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`                           // JWT token for subsequent requests
-	ExpiresAt     int64                  `protobuf:"varint,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"` // Token expiration time (Unix timestamp)
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`             // Server-assigned session UUID
+	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`                                      // JWT token for subsequent requests
+	ExpiresAt     int64                  `protobuf:"varint,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`            // Token expiration time (Unix timestamp)
+	EncryptionKey []byte                 `protobuf:"bytes,4,opt,name=encryption_key,json=encryptionKey,proto3" json:"encryption_key,omitempty"` // AES-256-GCM key for encrypting/decrypting telemetry data
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -149,6 +150,13 @@ func (x *AuthSessionResponse) GetExpiresAt() int64 {
 		return x.ExpiresAt
 	}
 	return 0
+}
+
+func (x *AuthSessionResponse) GetEncryptionKey() []byte {
+	if x != nil {
+		return x.EncryptionKey
+	}
+	return nil
 }
 
 // Telemetry batch from the agent.
@@ -786,13 +794,14 @@ const file_sparkproctoring_v1_agent_service_proto_rawDesc = "" +
 	"sessionKey\x12#\n" +
 	"\ragent_version\x18\x02 \x01(\tR\fagentVersion\x12\x0e\n" +
 	"\x02os\x18\x03 \x01(\tR\x02os\x12\x1a\n" +
-	"\bhostname\x18\x04 \x01(\tR\bhostname\"i\n" +
+	"\bhostname\x18\x04 \x01(\tR\bhostname\"\x90\x01\n" +
 	"\x13AuthSessionResponse\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x03 \x01(\x03R\texpiresAt\"o\n" +
+	"expires_at\x18\x03 \x01(\x03R\texpiresAt\x12%\n" +
+	"\x0eencryption_key\x18\x04 \x01(\fR\rencryptionKey\"o\n" +
 	"\x14SendTelemetryRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x128\n" +

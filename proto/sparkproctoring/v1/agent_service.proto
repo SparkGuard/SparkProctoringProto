@@ -47,9 +47,10 @@ message AuthSessionRequest {
 
 // Authentication response.
 message AuthSessionResponse {
-  string session_id = 1; // Server-assigned session UUID
-  string token      = 2; // JWT token for subsequent requests
-  int64  expires_at = 3; // Token expiration time (Unix timestamp)
+  string session_id     = 1; // Server-assigned session UUID
+  string token          = 2; // JWT token for subsequent requests
+  int64  expires_at     = 3; // Token expiration time (Unix timestamp)
+  bytes  encryption_key = 4; // AES-256-GCM key for encrypting/decrypting telemetry data
 }
 
 // Telemetry batch from the agent.
