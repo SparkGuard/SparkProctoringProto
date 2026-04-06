@@ -32,8 +32,8 @@ const (
 const (
 	StatusPending   = "pending"
 	StatusActive    = "active"
+	StatusFinished  = "finished"
 	StatusPaused    = "paused"
-	StatusCompleted = "completed"
 	StatusFailed    = "failed"
 )
 
