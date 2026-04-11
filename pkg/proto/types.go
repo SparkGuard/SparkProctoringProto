@@ -14,6 +14,7 @@ const (
 	TypeScreenshot uint8 = 0x03 // PNG/JPEG screenshot
 	TypeMeta       uint8 = 0x04 // Session metadata
 	TypeNetwork    uint8 = 0x05 // Network events
+	TypeHostInfo   uint8 = 0x06 // Host fingerprint: FullSnapshot or Heartbeat JSON
 )
 
 // Event type strings — used in JSON event payloads (REST transport).

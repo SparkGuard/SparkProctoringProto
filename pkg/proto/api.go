@@ -26,6 +26,15 @@ const (
 
 	// GET — telemetry events: /sessions/{id}/telemetry?from=...&to=...&type=...
 	EndpointSessionTelemetry = "/sessions/{id}/telemetry"
+
+	// GET — full host fingerprint JSON collected at session start.
+	EndpointSessionFingerprintFull = "/sessions/{id}/fingerprint/full"
+
+	// GET — periodic heartbeats: /sessions/{id}/fingerprint/heartbeats?from=&to=&limit=
+	EndpointSessionFingerprintHeartbeats = "/sessions/{id}/fingerprint/heartbeats"
+
+	// GET — compact fingerprint summary for session card / dashboard.
+	EndpointSessionFingerprintSummary = "/sessions/{id}/fingerprint/summary"
 )
 
 // --- REST-only request/response types ---

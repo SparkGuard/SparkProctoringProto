@@ -16,6 +16,7 @@ enum DataType {
   DATA_TYPE_SCREENSHOT = 3; // PNG/JPEG screenshot
   DATA_TYPE_META       = 4; // Session metadata
   DATA_TYPE_NETWORK    = 5; // Network events (DNS, traffic stats)
+  DATA_TYPE_HOST_INFO  = 6; // Host fingerprint: FullSnapshot or Heartbeat JSON
 }
 
 // Event type inside EventPayload.
