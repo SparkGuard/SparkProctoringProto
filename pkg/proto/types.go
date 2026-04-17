@@ -5,6 +5,8 @@
 // string mappings, and utilities that don't fit into protobuf definitions.
 package proto
 
+import "fmt"
+
 // Block data type bytes — used in SparkProctoringStorage block headers.
 // These MUST match the DataType enum values in common.proto.
 const (
@@ -31,11 +33,11 @@ const (
 
 // Session status strings — used in REST API JSON responses.
 const (
-	StatusPending   = "pending"
-	StatusActive    = "active"
-	StatusFinished  = "finished"
-	StatusPaused    = "paused"
-	StatusFailed    = "failed"
+	StatusPending  = "pending"
+	StatusActive   = "active"
+	StatusFinished = "finished"
+	StatusPaused   = "paused"
+	StatusFailed   = "failed"
 )
 
 // Stream type strings — used in REST API and S3 path construction.
@@ -43,6 +45,24 @@ const (
 	StreamScreen = "screen"
 	StreamWebcam = "webcam"
 )
+
+// FormatStreamType returns the canonical REST stream_type identifier for
+// a video stream produced by an agent. Channel 0 returns the bare stream
+// kind ("screen" or "webcam"); higher channels are suffixed with an
+// underscore-delimited index.
+//
+// Used in the multipart "stream_type" upload form field and in S3 keys of
+// the form sessions/<id>/video/<stream_type>/chunk_<idx>.ts.
+func FormatStreamType(isWebcam bool, channel uint8) string {
+	kind := StreamScreen
+	if isWebcam {
+		kind = StreamWebcam
+	}
+	if channel == 0 {
+		return kind
+	}
+	return fmt.Sprintf("%s_%d", kind, channel)
+}
 
 // User role strings — used in JWT claims and REST API.
 const (
